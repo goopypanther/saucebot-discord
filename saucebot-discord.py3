@@ -17,8 +17,8 @@ __version__ = '0.2'
 import json
 import os
 import re
-import requests
 
+import cfscrape
 import discord
 import twitter
 
@@ -78,6 +78,7 @@ site_info = {
 }
 
 client = discord.Client()
+scraper = cfscrape.create_scraper()
 twitter_api = twitter.Api(
     consumer_key=twitter_consumer_key,
     onsumer_secret=twitter_consumer_secret,
@@ -137,11 +138,11 @@ async def on_message(message):
         for link, site_id in links:
             # Request submission info
             if 'headers' in info:
-                resp = requests.get(
+                resp = scraper.get(
                     info['url'].format(site_id), headers=info['headers']
                 )
             else:
-                resp = requests.get(info['url'].format(site_id))
+                resp = scraper.get(info['url'].format(site_id))
 
             # Ignore if get from API fails
             if not resp:
