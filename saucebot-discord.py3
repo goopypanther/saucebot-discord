@@ -1,147 +1,172 @@
 #!/usr/bin/python3
 
-# Saucebot, a discord bot for interacting with furaffinity URLs
+# Saucebot, a Discord bot for interacting with various artwork site URLs.
+#
+# Current sites supported:
+#    FurAffinity
+#    Weasyl
+#    DeviantArt
+#    e621
 
 __title__ = 'saucebot-discord'
 __author__ = 'Goopypanther'
 __license__ = 'GPL'
 __copyright__ = 'Copyright 2017 Goopypanther'
-__version__ = '0.1'
+__version__ = '0.2'
 
-import discord
-import re
-import requests
 import json
 import os
+import re
+import requests
 
-discord_token = os.environ["DISCORD_API_KEY"]
-weasyl_headers = {'X-Weasyl-API-Key': os.environ["WEASYL_API_KEY"]}
+import discord
+import twitter
 
-fa_pattern = re.compile('(furaffinity\.net/view/(\d+))')
-ws_pattern = re.compile('weasyl\.com\/~\w+\/submissions\/(\d+)')
-da_pattern = re.compile('deviantart\.com.*.\d')
-e621_pattern = re.compile('e621\.net\/post/show\/(\d+)')
 
-fapi_url = "https://bawk.space/fapi/submission/{}"
-wsapi_url = "https://www.weasyl.com/api/submissions/{}/view"
-daapi_url = "https://backend.deviantart.com/oembed?url={}"
-e621api_url = "https://e621.net/post/show.json?id={}"
+discord_token = os.environ['DISCORD_API_KEY']
+twitter_consumer_key = os.environ['TWITTER_CONSUMER_KEY']
+twitter_consumer_secret = os.environ['TWITTER_CONSUMER_SECRET']
+twitter_access_token_key = os.environ['TWITTER_TOKEN_KEY']
+twitter_access_token_secret = os.environ['TWITTER_TOKEN_SECRET']
+
+twitter_pattern = re.compile('twitter.com/\w+/status/(\d+)')
+
+site_info = {
+    'furaffinity': {
+        'get_author_name': lambda x: x['author'],
+        'get_author_icon': lambda x: x['avatar'],
+        'get_image': lambda x: x['title'],
+        'get_image_url': lambda x: x['image_url'],
+        'rx_pattern': re.compile(r'(furaffinity\.net/view/(\d+))'),
+        'url': 'https://bawk.space/fapi/submission/{}',
+    },
+    'weasyl': {
+        'get_author_name': lambda x: x['owner'],
+        'get_author_icon': lambda x: x['owner_media']['avatar'][0]['url'],
+        'get_image': lambda x: x['title'],
+        'get_image_url':
+            lambda x: x['media']['submission'][0]['links']['cover'][0]['url'],
+        'rx_pattern': re.compile(r'weasyl\.com/~\w+/submissions/(\d+)'),
+        'url': 'https://www.weasyl.com/api/submissions/{}/view',
+        'headers': {'X-Weasyl-API-Key': os.environ['WEASYL_API_KEY']},
+    },
+    'weasyl_char': {
+        'get_author_name': lambda x: x['owner'],
+        'get_author_icon': lambda x: x['owner_media']['avatar'][0]['url'],
+        'get_image': lambda x: x['title'],
+        'get_image_url':
+            lambda x: x['media']['submission'][0]['links']['cover'][0]['url'],
+        'rx_pattern': re.compile('weasyl\.com/character/(\d+)'),
+        'url': 'https://www.weasyl.com/api/characters/{}/view',
+        'headers': {'X-Weasyl-API-Key': os.environ['WEASYL_API_KEY']},
+    },
+    'deviantart': {
+        'get_author_name': lambda x: x['author_name'],
+        'get_author_icon': lambda x: x.Empty,
+        'get_image': lambda x: x['title'],
+        'get_image_url': lambda x: x['url'],
+        'rx_pattern': re.compile(r'deviantart\.com.*.\d'),
+        'url': 'https://backend.deviantart.com/oembed?url={}',
+    },
+    'e621': {
+        'get_image': lambda x: x['artist'][0],
+        'get_image_url': lambda x: x['file_url'],
+        'rx_pattern': re.compile(r'e621\.net/post/show/(\d+)'),
+        'url': 'https://e621.net/post/show.json?id={}',
+        'no_author': True,
+    },
+}
 
 client = discord.Client()
+twitter_api = twitter.Api(
+    consumer_key=twitter_consumer_key,
+    onsumer_secret=twitter_consumer_secret,
+    access_token_key=twitter_access_token_key,
+    access_token_secret=twitter_access_token_secret
+)
+
+
+def api_print(message, content):
+    print(
+        '{}#{}@{}:{}: {}'.format(
+            message.author.name, message.author.discriminator,
+            message.server.name, message.channel.name, content
+        )
+    )
 
 
 @client.event
 async def on_message(message):
-    # we do not want the bot to reply to itself
+    # We do not want the bot to reply to itself
     if message.author == client.user:
         return
 
-    fa_links = fa_pattern.findall(message.content)
+    # Not as easy to integrate Twitter API with current form
+    twitter_links = twitter_pattern.findall(message.content)
+    tweet_media = ''
 
-    # Process each fa link
-    for (fa_link, fa_id) in fa_links:
-        # Request submission info
-        fa_get = requests.get(fapi_url.format(fa_id))
-
-        # Check for success from API
-        if not fa_get:
-            continue
-
-        fapi = json.loads(fa_get.text)
-        print(fapi)
-
-        em = discord.Embed(
-            title=fapi["title"])
-        # discord api does not like it when embed urls are set?
-        # it's not of critical importance as the original url will be near
-        # em.url = fa_link
-
-        em.set_image(url=fapi["image_url"])
-        em.set_author(
-            name=fapi["author"],
-            icon_url=fapi["avatar"])
-
-        await client.send_message(message.channel, embed=em)
-        
-        
-    ws_links = ws_pattern.findall(message.content)
-    
-    # Process each ws link
-    for (ws_id) in ws_links:
-        # Request submission info
-        ws_get = requests.get(wsapi_url.format(ws_id), headers=weasyl_headers)
+    # Process each twitter link
+    for tweet in twitter_links:
+        # Request tweet
+        tweet_status = twitter_api.GetStatus(tweet)
 
         # Check for success from API
-        if not ws_get:
+        if not tweet_status:
             continue
 
-        wsapi = json.loads(ws_get.text)
-        print(wsapi)
+        # Get media links in tweet
+        for media_num, media_item in enumerate(tweet_status.media):
+            # Check if media is an image and not first image (disp. by embed)
+            if (media_item.type == 'photo') and (media_num > 0):
+                tweet_media += media_item.media_url_https + ' \n '
 
-        em = discord.Embed(
-            title=wsapi["title"])
+            # Disabling video feature since it can be played in the embed
+            # Can there be multiple videos per tweet?
+            # elif (media_item.type == 'video'):
+            #    tweet_media += media_item.video_info['variants'][0]['url']
 
-        # Discord didn't want to load the submission image, but the link worked
-        em.set_image(url=wsapi["media"]["submission"][0]["links"]["cover"][0]["url"])
-        em.set_author(
-            name=wsapi["owner"],
-            icon_url=wsapi["owner_media"]["avatar"][0]["url"])
+    # Check if any non-displayed media was found in any tweets in msg
+    if len(tweet_media) > 0:
+        api_print(message, tweet_media)
 
-        await client.send_message(message.channel, embed=em)
-        
-        
-    da_links = da_pattern.findall(message.content)
-    
-    # Process each da link
-    for (da_id) in da_links:
-        # Request submission info
-        da_get = requests.get(daapi_url.format(da_id))
+        await client.send_message(message.channel, tweet_media)
 
-        # Check for success from API
-        if not da_get:
-            continue
+    for site, info in site_info.items():
+        links = info['rx_pattern'].findall(message.content)
 
-        daapi = json.loads(da_get.text)
-        print(daapi)
+        for link, site_id in links:
+            # Request submission info
+            if 'headers' in info:
+                resp = requests.get(
+                    info['url'].format(site_id), headers=info['headers']
+                )
+            else:
+                resp = requests.get(info['url'].format(site_id))
 
-        em = discord.Embed(
-            title=daapi["title"])
+            # Ignore if get from API fails
+            if not resp:
+                continue
 
-        em.set_image(url=daapi["url"])
-        em.set_author(
-            name=daapi["author_name"],
-            icon_url=em.Empty)
+            api = json.loads(resp.text)
+            api_print(message, info['get_image_url'](api))
 
-        await client.send_message(message.channel, embed=em)
+            em = discord.Embed(title=info['get_image'](api))
+
+            em.set_image(url=info['get_image_url'](api))
+
+            if 'no_author' not in info:
+                em.set_author(
+                    name=info['get_author_name'](api),
+                    icon_url=info['get_author_icon'](api)
+                )
+
+            await client.send_message(message.channel, embed=em)
 
 
-    e621_links = e621_pattern.findall(message.content)
-
-    # Process each e621 link
-    for (e621_id) in e621_links:
-        # Request submission info
-        e621_get = requests.get(e621api_url.format(e621_id))
-
-        # Check for success from API
-        if not e621_get:
-            continue
-
-        e621api = json.loads(e621_get.text)
-        print(e621api)
-
-        em = discord.Embed(
-            title=e621api["artist"][0])
-
-        em.set_image(url=e621api["file_url"])
-
-        await client.send_message(message.channel, embed=em)
- 
- 
 @client.event
 async def on_ready():
-    print('Logged in as')
-    print(client.user.name)
-    print(client.user.id)
+    print(f'Logged in as: {client.user.name} ({client.user.id})')
     print('------')
+
 
 client.run(discord_token)
