@@ -48,7 +48,7 @@ twitterapi = twitter.Api(consumer_key=twitter_consumer_key,
                   access_token_secret=twitter_access_token_secret,
                   tweet_mode='extended')
 
-pixivapi = pixivpy3.AppPixivAPI()
+pixivapi = AppPixivAPI()
 
 
 client = discord.Client()
