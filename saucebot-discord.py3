@@ -14,7 +14,7 @@ import requests
 import json
 import os
 import twitter
-import pixivpy3
+from pixivpy3 import *
 import io
 import time
 
@@ -24,8 +24,6 @@ twitter_consumer_key = os.environ["TWITTER_CONSUMER_KEY"]
 twitter_consumer_secret = os.environ["TWITTER_CONSUMER_SECRET"]
 twitter_access_token_key = os.environ["TWITTER_TOKEN_KEY"]
 twitter_access_token_secret = os.environ["TWITTER_TOKEN_SECRET"]
-pixiv_login = os.environ['PIXIV_LOGIN']
-pixiv_password = os.environ['PIXIV_PASSWORD']
 
 disable_command_pattern = re.compile('(<|\|\|)(?!@|#|:|a:).*(>|\|\|)')
 fa_pattern = re.compile('(furaffinity\.net/(?:view|full)/(\d+))')
@@ -51,7 +49,7 @@ twitterapi = twitter.Api(consumer_key=twitter_consumer_key,
                   tweet_mode='extended')
 
 pixivapi = pixivpy3.AppPixivAPI()
-pixivapi.login(pixiv_login, pixiv_password)
+
 
 client = discord.Client()
 
