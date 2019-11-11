@@ -6,7 +6,7 @@ __title__ = 'saucebot-discord'
 __author__ = 'Goopypanther'
 __license__ = 'GPL'
 __copyright__ = 'Copyright 2019 Goopypanther'
-__version__ = '0.3'
+__version__ = '0.4'
 
 import discord
 import re
@@ -251,18 +251,27 @@ async def on_message(message):
             # Check for multi-image set
             if len(pixiv_result.illust.meta_pages) > 0:
                 await message.channel.send('This is part of a {} image set.'.format(len(pixiv_result.illust.meta_pages)))
+                pixiv_meta_pages = pixiv_result.illust.meta_pages
+                for pixiv_meta_page in pixiv_meta_pages:
+                    pixiv_image_link = pixiv_meta_page.image_urls.large
+                    print(message.author.name + '#' + message.author.discriminator + '@' + message.guild.name + ':' + message.channel.name + ': ' + pixiv_image_link)
+                    pixiv_image_rsp = requests.get(pixiv_image_link, headers={'Referer': 'https://app-api.pixiv.net/'}, stream=True)
+                    pixiv_image_rsp_fp = io.BytesIO(pixiv_image_rsp.content)
+                    # Add file name to stream
+                    pixiv_image_rsp_fp.name = pixiv_image_link.rsplit('/', 1)[-1]
+                    await message.channel.send(file=discord.File(pixiv_image_rsp_fp))
+            else:
+                pixiv_image_link = pixiv_result.illust.image_urls.large
 
-            pixiv_image_link = pixiv_result.illust.image_urls.large
+                print(message.author.name + '#' + message.author.discriminator + '@' + message.guild.name + ':' + message.channel.name + ': ' + pixiv_image_link)
 
-            print(message.author.name + '#' + message.author.discriminator + '@' + message.guild.name + ':' + message.channel.name + ': ' + pixiv_image_link)
+                pixiv_image_rsp = requests.get(pixiv_image_link, headers={'Referer': 'https://app-api.pixiv.net/'}, stream=True)
 
-            pixiv_image_rsp = requests.get(pixiv_image_link, headers={'Referer': 'https://app-api.pixiv.net/'}, stream=True)
+                pixiv_image_rsp_fp = io.BytesIO(pixiv_image_rsp.content)
+                # Add file name to stream
+                pixiv_image_rsp_fp.name = pixiv_image_link.rsplit('/', 1)[-1]
 
-            pixiv_image_rsp_fp = io.BytesIO(pixiv_image_rsp.content)
-            # Add file name to stream
-            pixiv_image_rsp_fp.name = pixiv_image_link.rsplit('/', 1)[-1]
-
-            await message.channel.send(file=discord.File(pixiv_image_rsp_fp))
+                await message.channel.send(file=discord.File(pixiv_image_rsp_fp))
 
 
     pixiv_direct_img_links = pixiv_direct_img_pattern.findall(message.content)
