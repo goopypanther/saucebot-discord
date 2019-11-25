@@ -11,7 +11,7 @@ Currently supports:
  * Deviantart
  * Weasly
  * e621
- * Most multi-image twitter posts
+ * ~~Most multi-image twitter posts~~ Now supported natively
  * Pixiv
 
 Enclosing messages in angle brackets disables image preview. Links hiden by spoilers are automatically disabled.
@@ -22,14 +22,12 @@ Requires
  * `>=Python3.5`
  * [Discord.py](https://github.com/Rapptz/discord.py) >= 1
  * [pixivpy](https://github.com/upbit/pixivpy)
- * [twitter](https://github.com/bear/python-twitter)
  * re
  * requests
  * io
  * json
  * Discord bot token
  * Weasly API key
- * Twitter consumer key and secret, access token key and secret
  * Pixiv login and password
 
 Installing

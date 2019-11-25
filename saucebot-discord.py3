@@ -6,24 +6,19 @@ __title__ = 'saucebot-discord'
 __author__ = 'Goopypanther'
 __license__ = 'GPL'
 __copyright__ = 'Copyright 2019 Goopypanther'
-__version__ = '0.3'
+__version__ = '0.4'
 
 import discord
 import re
 import requests
 import json
 import os
-import twitter
 import pixivpy3
 import io
 import time
 
 discord_token = os.environ["DISCORD_API_KEY"]
 weasyl_headers = {'X-Weasyl-API-Key': os.environ["WEASYL_API_KEY"]}
-twitter_consumer_key = os.environ["TWITTER_CONSUMER_KEY"]
-twitter_consumer_secret = os.environ["TWITTER_CONSUMER_SECRET"]
-twitter_access_token_key = os.environ["TWITTER_TOKEN_KEY"]
-twitter_access_token_secret = os.environ["TWITTER_TOKEN_SECRET"]
 pixiv_login = os.environ['PIXIV_LOGIN']
 pixiv_password = os.environ['PIXIV_PASSWORD']
 
@@ -33,7 +28,6 @@ ws_pattern = re.compile('weasyl\.com\/~\w+\/submissions\/(\d+)')
 wschar_pattern = re.compile('weasyl\.com\/character\/(\d+)')
 da_pattern = re.compile('deviantart\.com.*.\d')
 e621_pattern = re.compile('e621\.net\/post/show\/(\d+)')
-twitter_pattern = re.compile('twitter.com/\w+/status/(\d+)')
 pixiv_pattern = re.compile('pixiv.net\/.*artworks\/(\d*)')
 pixiv_direct_img_pattern = re.compile('i\.pximg\.net\S*\w')
 
@@ -43,12 +37,6 @@ wscharapi_url = "https://www.weasyl.com/api/characters/{}/view"
 daapi_url = "https://backend.deviantart.com/oembed?url={}"
 e621api_url = "https://e621.net/post/show.json?id={}"
 
-
-twitterapi = twitter.Api(consumer_key=twitter_consumer_key,
-                  consumer_secret=twitter_consumer_secret,
-                  access_token_key=twitter_access_token_key,
-                  access_token_secret=twitter_access_token_secret,
-                  tweet_mode='extended')
 
 pixivapi = pixivpy3.AppPixivAPI()
 pixivapi.login(pixiv_login, pixiv_password)
@@ -197,40 +185,7 @@ async def on_message(message):
         em.set_image(url=e621api["file_url"])
 
         await message.channel.send(embed=em)
-
-
-    twitter_links = twitter_pattern.findall(message.content)
-    tweet_media = ''
-
-    # Process each twitter link
-    for (tweet) in twitter_links:
-        # Request tweet
-        tweet_status = twitterapi.GetStatus(tweet)
-
-        # Check for success from API
-        if not tweet_status:
-            continue
-
-        # Check if tweet has media
-        if not hasattr(tweet_status, 'media'):
-            continue
-
-        # Get media links in tweet
-        for (media_num, media_item) in enumerate(tweet_status.media):
-            # Check if media is an image and not first image (disp. by embed)
-            if (media_item.type == 'photo') and (media_num > 0):
-                tweet_media += media_item.media_url_https + ' \n '
-
-            # Disabling video feature since it can be played in the embed
-            # Can there be multiple videos per tweet?
-            #elif (media_item.type == 'video'):
-            #    tweet_media += media_item.video_info['variants'][0]['url']
-
-    # Check if any non-displayed media was found in any tweets in msg
-    if len(tweet_media) > 0:
-        print(message.author.name + '#' + message.author.discriminator + '@' + message.guild.name + ':' + message.channel.name + ': ' + tweet_media)
-
-        await message.channel.send(tweet_media)
+.channel.send(tweet_media)
 
 
     pixiv_links = pixiv_pattern.findall(message.content)
