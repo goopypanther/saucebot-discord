@@ -185,7 +185,6 @@ async def on_message(message):
         em.set_image(url=e621api["file_url"])
 
         await message.channel.send(embed=em)
-.channel.send(tweet_media)
 
 
     pixiv_links = pixiv_pattern.findall(message.content)
