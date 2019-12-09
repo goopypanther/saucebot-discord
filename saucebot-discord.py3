@@ -38,7 +38,7 @@ daapi_url = "https://backend.deviantart.com/oembed?url={}"
 e621api_url = "https://e621.net/post/show.json?id={}"
 
 
-pixivapi = pixivpy3.AppPixivAPI()
+pixivapi = pixivpy3.PixivAPI()
 pixivapi.login(pixiv_login, pixiv_password)
 
 client = discord.Client()
@@ -196,17 +196,18 @@ async def on_message(message):
         # Process each pixiv link
         for (pixiv_id) in pixiv_links:
             # Request submission info
-            pixiv_result = pixivapi.illust_detail(pixiv_id)
+            pixiv_result = pixivapi.works(pixiv_id)
 
             # Check for success from API
-            if not 'illust' in pixiv_result:
+            if not 'response' in pixiv_result or len(pixiv_result.response) < 1:
                 continue
+            pixiv_result = pixiv_result.response[0]
 
             # Check for multi-image set
-            if len(pixiv_result.illust.meta_pages) > 0:
-                await message.channel.send('This is part of a {} image set.'.format(len(pixiv_result.illust.meta_pages)))
+            if not pixiv_result.metadata is None:
+                await message.channel.send('This is part of a {} image set.'.format(len(pixiv_result.metadata.pages)))
 
-            pixiv_image_link = pixiv_result.illust.image_urls.large
+            pixiv_image_link = pixiv_result.image_urls.large
 
             print(message.author.name + '#' + message.author.discriminator + '@' + message.guild.name + ':' + message.channel.name + ': ' + pixiv_image_link)
 
