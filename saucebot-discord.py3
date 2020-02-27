@@ -5,8 +5,8 @@
 __title__ = 'saucebot-discord'
 __author__ = 'Goopypanther'
 __license__ = 'GPL'
-__copyright__ = 'Copyright 2019 Goopypanther'
-__version__ = '0.4'
+__copyright__ = 'Copyright 2020 Goopypanther'
+__version__ = '0.5'
 
 import discord
 import re
@@ -37,6 +37,7 @@ wscharapi_url = "https://www.weasyl.com/api/characters/{}/view"
 daapi_url = "https://backend.deviantart.com/oembed?url={}"
 e621api_url = "https://e621.net/post/show.json?id={}"
 
+e621api_headers = {'User-Agent': 'saucebot-discord-v0.5'}
 
 pixivapi = pixivpy3.AppPixivAPI()
 pixivapi.login(pixiv_login, pixiv_password)
@@ -170,7 +171,7 @@ async def on_message(message):
     # Process each e621 link
     for (e621_id) in e621_links:
         # Request submission info
-        e621_get = requests.get(e621api_url.format(e621_id))
+        e621_get = requests.get(e621api_url.format(e621_id), headers=e621api_headers)
 
         # Check for success from API
         if not e621_get:
