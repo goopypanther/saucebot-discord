@@ -6,7 +6,7 @@ __title__ = 'saucebot-discord'
 __author__ = 'Goopypanther'
 __license__ = 'GPL'
 __copyright__ = 'Copyright 2020 Goopypanther'
-__version__ = '0.5'
+__version__ = '0.6'
 
 import discord
 import re
@@ -31,7 +31,7 @@ e621_pattern = re.compile('e621\.net\/post/show\/(\d+)')
 pixiv_pattern = re.compile('pixiv.net\/.*artworks\/(\d*)')
 pixiv_direct_img_pattern = re.compile('i\.pximg\.net\S*\w')
 
-fapi_url = "https://bawk.space/fapi/submission/{}"
+faexport_url = "https://faexport.spangle.org.uk/submission/{}.json"
 wsapi_url = "https://www.weasyl.com/api/submissions/{}/view"
 wscharapi_url = "https://www.weasyl.com/api/characters/{}/view"
 daapi_url = "https://backend.deviantart.com/oembed?url={}"
@@ -61,7 +61,7 @@ async def on_message(message):
     # Process each fa link
     for (fa_link, fa_id) in fa_links:
         # Request submission info
-        fa_get = requests.get(fapi_url.format(fa_id))
+        fa_get = requests.get(faexport_url.format(fa_id))
 
         # Check for success from API
         if not fa_get:
@@ -73,7 +73,7 @@ async def on_message(message):
         if fapi["rating"] == "general":
             continue
 
-        print(message.author.name + '#' + message.author.discriminator + '@' + message.guild.name + ':' + message.channel.name + ': ' + fapi["image_url"])
+        print(message.author.name + '#' + message.author.discriminator + '@' + message.guild.name + ':' + message.channel.name + ': ' + fapi["download"])
 
         em = discord.Embed(
             title=fapi["title"])
@@ -81,9 +81,9 @@ async def on_message(message):
         # it's not of critical importance as the original url will be near
         # em.url = fa_link
 
-        em.set_image(url=fapi["image_url"])
+        em.set_image(url=fapi["download"])
         em.set_author(
-            name=fapi["author"],
+            name=fapi["profile_name"],
             icon_url=fapi["avatar"])
 
         await message.channel.send(embed=em)
