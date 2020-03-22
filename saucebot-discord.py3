@@ -6,7 +6,7 @@ __title__ = 'saucebot-discord'
 __author__ = 'Goopypanther'
 __license__ = 'GPL'
 __copyright__ = 'Copyright 2020 Goopypanther'
-__version__ = '0.6'
+__version__ = '0.7'
 
 import discord
 import re
@@ -37,7 +37,7 @@ wscharapi_url = "https://www.weasyl.com/api/characters/{}/view"
 daapi_url = "https://backend.deviantart.com/oembed?url={}"
 e621api_url = "https://e621.net/post/show.json?id={}"
 
-e621api_headers = {'User-Agent': 'saucebot-discord-v0.5'}
+e621api_headers = {'User-Agent': 'saucebot-discord-v%s' % __version__}
 
 pixivapi = pixivpy3.AppPixivAPI()
 pixivapi.login(pixiv_login, pixiv_password)
@@ -211,13 +211,14 @@ async def on_message(message):
 
             print(message.author.name + '#' + message.author.discriminator + '@' + message.guild.name + ':' + message.channel.name + ': ' + pixiv_image_link)
 
-            pixiv_image_rsp = requests.get(pixiv_image_link, headers={'Referer': 'https://app-api.pixiv.net/'}, stream=True)
+            async with message.channel.typing():
+                pixiv_image_rsp = requests.get(pixiv_image_link, headers={'Referer': 'https://app-api.pixiv.net/'}, stream=True)
 
-            pixiv_image_rsp_fp = io.BytesIO(pixiv_image_rsp.content)
-            # Add file name to stream
-            pixiv_image_rsp_fp.name = pixiv_image_link.rsplit('/', 1)[-1]
+                pixiv_image_rsp_fp = io.BytesIO(pixiv_image_rsp.content)
+                # Add file name to stream
+                pixiv_image_rsp_fp.name = pixiv_image_link.rsplit('/', 1)[-1]
 
-            await message.channel.send(file=discord.File(pixiv_image_rsp_fp))
+                await message.channel.send(file=discord.File(pixiv_image_rsp_fp))
 
 
     pixiv_direct_img_links = pixiv_direct_img_pattern.findall(message.content)
@@ -227,15 +228,16 @@ async def on_message(message):
         for url in pixiv_direct_img_links:
             url = 'https://' + url
 
-            pixiv_image_rsp = requests.get(url, headers={'Referer': 'https://app-api.pixiv.net/'}, stream=True)
+            async with message.channel.typing():
+                pixiv_image_rsp = requests.get(url, headers={'Referer': 'https://app-api.pixiv.net/'}, stream=True)
 
-            print(message.author.name + '#' + message.author.discriminator + '@' + message.guild.name + ':' + message.channel.name + ': ' + url)
+                print(message.author.name + '#' + message.author.discriminator + '@' + message.guild.name + ':' + message.channel.name + ': ' + url)
 
-            pixiv_image_rsp_fp = io.BytesIO(pixiv_image_rsp.content)
-            # Add file name to stream
-            pixiv_image_rsp_fp.name = url.rsplit('/', 1)[-1]
+                pixiv_image_rsp_fp = io.BytesIO(pixiv_image_rsp.content)
+                # Add file name to stream
+                pixiv_image_rsp_fp.name = url.rsplit('/', 1)[-1]
 
-            await message.channel.send(file=discord.File(pixiv_image_rsp_fp))
+                await message.channel.send(file=discord.File(pixiv_image_rsp_fp))
 
 @client.event
 async def on_ready():
