@@ -70,7 +70,7 @@ async def on_message(message):
         fapi = json.loads(fa_get.text)
 
         # FA now embeds general submissions, skip in that case
-        if fapi["rating"] == "general":
+        if fapi["rating"] == "General":
             continue
 
         print(message.author.name + '#' + message.author.discriminator + '@' + message.guild.name + ':' + message.channel.name + ': ' + fapi["download"])
@@ -242,6 +242,8 @@ async def on_ready():
     print('Logged in as')
     print(client.user.name)
     print(client.user.id)
+    print([x.name for x in client.guilds])
+    print('%s servers' % len(client.guilds))
     print('------')
 
 # Attempt to reconnect if we lose connection to discord, ie. one of these http requests took too long and we lost our auth.
