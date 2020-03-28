@@ -13,6 +13,7 @@ Currently supports:
  * e621
  * ~~Most multi-image twitter posts~~ Now supported natively
  * Pixiv
+ * Hentai-foundry
 
 Enclosing messages in angle brackets disables image preview. Links hiden by spoilers are automatically disabled.
 

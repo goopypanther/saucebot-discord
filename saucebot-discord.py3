@@ -6,7 +6,7 @@ __title__ = 'saucebot-discord'
 __author__ = 'Goopypanther'
 __license__ = 'GPL'
 __copyright__ = 'Copyright 2020 Goopypanther'
-__version__ = '0.7'
+__version__ = '0.8'
 
 import discord
 import re
@@ -30,12 +30,14 @@ da_pattern = re.compile('deviantart\.com.*.\d')
 e621_pattern = re.compile('e621\.net\/post/show\/(\d+)')
 pixiv_pattern = re.compile('pixiv.net\/.*artworks\/(\d*)')
 pixiv_direct_img_pattern = re.compile('i\.pximg\.net\S*\w')
+hf_pattern = re.compile('(hentai-foundry.com\/pictures\/user\/(\S*)\/(\d*)\/(\S*))')
 
 faexport_url = "https://faexport.spangle.org.uk/submission/{}.json"
 wsapi_url = "https://www.weasyl.com/api/submissions/{}/view"
 wscharapi_url = "https://www.weasyl.com/api/characters/{}/view"
 daapi_url = "https://backend.deviantart.com/oembed?url={}"
 e621api_url = "https://e621.net/post/show.json?id={}"
+hf_thumb_url = "https://thumbs.hentai-foundry.com/thumb.php?pid={}"
 
 e621api_headers = {'User-Agent': 'saucebot-discord-v%s' % __version__}
 
@@ -238,6 +240,24 @@ async def on_message(message):
                 pixiv_image_rsp_fp.name = url.rsplit('/', 1)[-1]
 
                 await message.channel.send(file=discord.File(pixiv_image_rsp_fp))
+
+
+    hf_thumb_img_links = hf_pattern.findall(message.content)
+    
+    # Process thumbnails of image lnks on hentai-foundry
+    if (hf_thumb_img_links) :
+        for (hf_link, hf_user, hf_pid, hf_title) in hf_thumb_img_links:
+            hf_link = "https://www." + hf_link
+            
+            print(message.author.name + '#' + message.author.discriminator + '@' + message.guild.name + ':' + message.channel.name + ': ' + hf_link)
+            
+            em = discord.Embed(title=hf_title)
+
+            em.set_image(url=(hf_thumb_url.format(hf_pid)))
+            em.set_author(name=hf_user, icon_url=em.Empty)
+
+            await message.channel.send(embed=em)
+            
 
 @client.event
 async def on_ready():
