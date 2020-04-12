@@ -6,7 +6,7 @@ __title__ = 'saucebot-discord'
 __author__ = 'Goopypanther'
 __license__ = 'GPL'
 __copyright__ = 'Copyright 2020 Goopypanther'
-__version__ = '0.8'
+__version__ = '0.9'
 
 import discord
 import re
@@ -41,6 +41,12 @@ hf_thumb_url = "https://thumbs.hentai-foundry.com/thumb.php?pid={}"
 
 e621api_headers = {'User-Agent': 'saucebot-discord-v%s' % __version__}
 
+help_message = "Hi! I\'m saucebot v%s, a discord bot that embeds images from art sites.\n" \
+"If you would like to add me to your own server, click here: <https://discordapp.com/oauth2/authorize?client_id=284138973318742026&scope=bot>\n\n" \
+"For more information you can join my support server: https://discord.gg/72NUrWU\n" \
+"Or you can visit us on github to submit an issue or fork our code: <https://github.com/JeremyRuhland/saucebot-discord/>" % __version__
+
+
 pixivapi = pixivpy3.AppPixivAPI()
 pixivapi.login(pixiv_login, pixiv_password)
 
@@ -53,6 +59,11 @@ async def on_message(message):
     if message.author == client.user:
         return
 
+    # DM Bot for help message
+    if isinstance(message.channel, discord.DMChannel):
+        await message.channel.send(help_message)
+        return
+    
     # Check for command to disable image previewing
     disable_command = disable_command_pattern.findall(message.content)
     if (disable_command):
