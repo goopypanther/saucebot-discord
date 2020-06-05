@@ -15,7 +15,6 @@ import json
 import os
 import pixivpy3
 import io
-import time
 
 discord_token = os.environ["DISCORD_API_KEY"]
 weasyl_headers = {'X-Weasyl-API-Key': os.environ["WEASYL_API_KEY"]}
@@ -76,7 +75,7 @@ async def on_message(message):
     for (fa_link, fa_id) in fa_links:
         # Request submission info
         #fa_get = requests.get(faexport_url.format(fa_id))
-        get = requests.get(fapi_url.format(fa_id))
+        fa_get = requests.get(fapi_url.format(fa_id))
 
         # Check for success from API
         if not fa_get:
@@ -98,11 +97,11 @@ async def on_message(message):
         # em.url = fa_link
 
         #em.set_image(url=fapi["download"])
-        em.set_image(url=fapi["image_url")
-	em.set_author(
+        em.set_image(url=fapi["image_url"])
+        em.set_author(
             #name=fapi["profile_name"],
-            name=fapi["author"]
-	    icon_url=fapi["avatar"])
+            name=fapi["author"],
+    	    icon_url=fapi["avatar"])
 
         await message.channel.send(embed=em)
 
