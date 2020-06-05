@@ -33,6 +33,7 @@ pixiv_direct_img_pattern = re.compile('i\.pximg\.net\S*\w')
 hf_pattern = re.compile('(hentai-foundry.com\/pictures\/user\/(\S*)\/(\d*)\/(\S*))')
 
 faexport_url = "https://faexport.spangle.org.uk/submission/{}.json"
+fapi_url = "https://bawk.space/fapi/submission/{}"
 wsapi_url = "https://www.weasyl.com/api/submissions/{}/view"
 wscharapi_url = "https://www.weasyl.com/api/characters/{}/view"
 daapi_url = "https://backend.deviantart.com/oembed?url={}"
@@ -63,7 +64,7 @@ async def on_message(message):
     if isinstance(message.channel, discord.DMChannel):
         await message.channel.send(help_message)
         return
-    
+
     # Check for command to disable image previewing
     disable_command = disable_command_pattern.findall(message.content)
     if (disable_command):
@@ -74,7 +75,8 @@ async def on_message(message):
     # Process each fa link
     for (fa_link, fa_id) in fa_links:
         # Request submission info
-        fa_get = requests.get(faexport_url.format(fa_id))
+        #fa_get = requests.get(faexport_url.format(fa_id))
+        get = requests.get(fapi_url.format(fa_id))
 
         # Check for success from API
         if not fa_get:
@@ -86,7 +88,8 @@ async def on_message(message):
         if fapi["rating"] == "General":
             continue
 
-        print(message.author.name + '#' + message.author.discriminator + '@' + message.guild.name + ':' + message.channel.name + ': ' + fapi["download"])
+        # print(message.author.name + '#' + message.author.discriminator + '@' + message.guild.name + ':' + message.channel.name + ': ' + fapi["download"])
+        print(message.author.name + '#' + message.author.discriminator + '@' + message.guild.name + ':' + message.channel.name + ': ' + fapi["image_url"])
 
         em = discord.Embed(
             title=fapi["title"])
@@ -94,10 +97,12 @@ async def on_message(message):
         # it's not of critical importance as the original url will be near
         # em.url = fa_link
 
-        em.set_image(url=fapi["download"])
-        em.set_author(
-            name=fapi["profile_name"],
-            icon_url=fapi["avatar"])
+        #em.set_image(url=fapi["download"])
+        em.set_image(url=fapi["image_url")
+	em.set_author(
+            #name=fapi["profile_name"],
+            name=fapi["author"]
+	    icon_url=fapi["avatar"])
 
         await message.channel.send(embed=em)
 
@@ -254,21 +259,21 @@ async def on_message(message):
 
 
     hf_thumb_img_links = hf_pattern.findall(message.content)
-    
+
     # Process thumbnails of image lnks on hentai-foundry
     if (hf_thumb_img_links) :
         for (hf_link, hf_user, hf_pid, hf_title) in hf_thumb_img_links:
             hf_link = "https://www." + hf_link
-            
+
             print(message.author.name + '#' + message.author.discriminator + '@' + message.guild.name + ':' + message.channel.name + ': ' + hf_link)
-            
+
             em = discord.Embed(title=hf_title)
 
             em.set_image(url=(hf_thumb_url.format(hf_pid)))
             em.set_author(name=hf_user, icon_url=em.Empty)
 
             await message.channel.send(embed=em)
-            
+
 
 @client.event
 async def on_ready():
