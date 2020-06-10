@@ -74,8 +74,11 @@ async def on_message(message):
     # Process each fa link
     for (fa_link, fa_id) in fa_links:
         # Request submission info
-        #fa_get = requests.get(faexport_url.format(fa_id))
-        fa_get = requests.get(fapi_url.format(fa_id))
+        fa_get = requests.get(faexport_url.format(fa_id))
+
+        # Backup request
+        if (fa_get.status_code is not 200):
+            fa_get = requests.get(fapi_url.format(fa_id))
 
         # Check for success from API
         if not fa_get:
@@ -87,8 +90,12 @@ async def on_message(message):
         if fapi["rating"].lower() == "general":
             continue
 
-        # print(message.author.name + '#' + message.author.discriminator + '@' + message.guild.name + ':' + message.channel.name + ': ' + fapi["download"])
-        print(message.author.name + '#' + message.author.discriminator + '@' + message.guild.name + ':' + message.channel.name + ': ' + fapi["image_url"])
+        try:
+            fapi_img = fapi["download"]
+        except:
+            fapi_img = fapi["image_url"]
+
+        print(message.author.name + '#' + message.author.discriminator + '@' + message.guild.name + ':' + message.channel.name + ': ' + fapi_img)
 
         em = discord.Embed(
             title=fapi["title"])
@@ -96,11 +103,14 @@ async def on_message(message):
         # it's not of critical importance as the original url will be near
         # em.url = fa_link
 
-        #em.set_image(url=fapi["download"])
-        em.set_image(url=fapi["image_url"])
+        try:
+            fapi_author = fapi["author"]
+        except:
+            fapi_author = fapi["profile_name"]
+
+        em.set_image(url=fapi_img)
         em.set_author(
-            #name=fapi["profile_name"],
-            name=fapi["author"],
+            name=fapi_author,
     	    icon_url=fapi["avatar"])
 
         await message.channel.send(embed=em)
