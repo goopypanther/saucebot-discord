@@ -315,7 +315,7 @@ async def on_message(message):
         for media in looter.medias():
             for link in links(media, looter):
                 tex+="{}\n".format(link)
-        await ch.send(tex)
+        await message.channel.send(tex)
     
 
 
