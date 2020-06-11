@@ -15,6 +15,21 @@ import json
 import os
 import pixivpy3
 import io
+from instalooter.looters import PostLooter
+#instalooter needs a user agent to tell instagram, drop user-agent.txt into ~/.cache/instalooter/{version}/
+
+#handle different ig links
+def links(media, looter):
+    if media.get('__typename') == "GraphSidecar":
+        media = looter.get_post_info(media['shortcode'])
+        nodes = [e['node'] for e in media['edge_sidecar_to_children']['edges']]
+        return [n.get('video_url') or n.get('display_url') for n in nodes]
+    elif media['is_video']:
+        media = looter.get_post_info(media['shortcode'])
+        return [media['video_url']]
+    else:
+        return [media['display_url']]
+
 
 discord_token = os.environ["DISCORD_API_KEY"]
 weasyl_headers = {'X-Weasyl-API-Key': os.environ["WEASYL_API_KEY"]}
@@ -282,6 +297,24 @@ async def on_message(message):
             em.set_author(name=hf_user, icon_url=em.Empty)
 
             await message.channel.send(embed=em)
+            
+    # process instagram links
+    instaglam=re.compile('instagram\.com\/p\/[a-zA-Z0-9!$*\-_]+')
+    iglinks=instaglam.findall(message.content)
+    for x in iglinks:
+        postid=x[16:]
+        looter=None
+        #is post id valid
+        try:
+            looter=PostLooter(postid)
+        except:
+            continue
+        tex=''
+        for media in looter.medias():
+            for link in links(media, looter):
+                tex+="{}\n".format(link)
+        await ch.send(tex)
+    
 
 
 @client.event
