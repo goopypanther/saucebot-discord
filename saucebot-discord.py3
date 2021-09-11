@@ -5,8 +5,8 @@
 __title__ = 'saucebot-discord'
 __author__ = 'Goopypanther'
 __license__ = 'GPL'
-__copyright__ = 'Copyright 2020 Goopypanther'
-__version__ = '0.9'
+__copyright__ = 'Copyright 2021 Goopypanther'
+__version__ = '1.0'
 
 import discord
 import re
@@ -16,10 +16,22 @@ import os
 import pixivpy3
 import io
 
+# Set to True to enable twitter media embed (disabled since native discord support available on desktop)
+twitter_support = False
+
+if twitter_support:
+    import twitter
+
 discord_token = os.environ["DISCORD_API_KEY"]
 weasyl_headers = {'X-Weasyl-API-Key': os.environ["WEASYL_API_KEY"]}
 pixiv_login = os.environ['PIXIV_LOGIN']
 pixiv_password = os.environ['PIXIV_PASSWORD']
+
+if twitter_support:
+    twitter_consumer_key = os.environ["TWITTER_CONSUMER_KEY"]
+    twitter_consumer_secret = os.environ["TWITTER_CONSUMER_SECRET"]
+    twitter_access_token_key = os.environ["TWITTER_TOKEN_KEY"]
+    twitter_access_token_secret = os.environ["TWITTER_TOKEN_SECRET"]
 
 disable_command_pattern = re.compile('(<|\|\|)(?!@|#|:|a:).*(>|\|\|)')
 fa_pattern = re.compile('(furaffinity\.net/(?:view|full)/(\d+))')
@@ -30,6 +42,7 @@ e621_pattern = re.compile('e621\.net\/post/show\/(\d+)')
 pixiv_pattern = re.compile('pixiv.net\/.*artworks\/(\d*)')
 pixiv_direct_img_pattern = re.compile('i\.pximg\.net\S*\w')
 hf_pattern = re.compile('(hentai-foundry.com\/pictures\/user\/(\S*)\/(\d*)\/(\S*))')
+twitter_pattern = re.compile('twitter.com/\w+/status/(\d+)')
 
 faexport_url = "https://faexport.spangle.org.uk/submission/{}.json"
 fapi_url = "https://bawk.space/fapi/submission/{}"
@@ -50,6 +63,13 @@ help_message = "Hi! I\'m saucebot v%s, a discord bot that embeds images from art
 pixivapi = pixivpy3.AppPixivAPI()
 pixivapi.login(pixiv_login, pixiv_password)
 
+if twitter_support:
+    twitterapi = twitter.Api(consumer_key=twitter_consumer_key,
+                      consumer_secret=twitter_consumer_secret,
+                      access_token_key=twitter_access_token_key,
+                      access_token_secret=twitter_access_token_secret,
+                      tweet_mode='extended')
+                  
 client = discord.Client()
 
 
@@ -282,6 +302,41 @@ async def on_message(message):
             em.set_author(name=hf_user, icon_url=em.Empty)
 
             await message.channel.send(embed=em)
+
+
+    if twitter_support:
+        twitter_links = twitter_pattern.findall(message.content)
+        tweet_media = ''
+
+        # Process each twitter link
+        for (tweet) in twitter_links:
+            # Request tweet
+            tweet_status = twitterapi.GetStatus(tweet)
+
+            # Check for success from API
+            if not tweet_status:
+                continue
+
+            # Check if tweet has media
+            if not hasattr(tweet_status, 'media'):
+                continue
+
+            # Get media links in tweet
+            for (media_num, media_item) in enumerate(tweet_status.media):
+                # Check if media is an image and not first image (disp. by embed)
+                if (media_item.type == 'photo') and (media_num > 0):
+                    tweet_media += media_item.media_url_https + ' \n '
+
+                # Disabling video feature since it can be played in the embed
+                # Can there be multiple videos per tweet?
+                #elif (media_item.type == 'video'):
+                #    tweet_media += media_item.video_info['variants'][0]['url']
+
+        # Check if any non-displayed media was found in any tweets in msg
+        if len(tweet_media) > 0:
+            print(message.author.name + '#' + message.author.discriminator + '@' + message.guild.name + ':' + message.channel.name + ': ' + tweet_media)
+
+            await message.channel.send(tweet_media)
 
 
 @client.event

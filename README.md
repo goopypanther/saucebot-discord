@@ -11,7 +11,7 @@ Currently supports:
  * Deviantart
  * Weasly
  * e621
- * ~~Most multi-image twitter posts~~ Now supported natively
+ * ~~Most multi-image twitter posts~~ Now supported natively, but feature can be enabled
  * Pixiv
  * Hentai-foundry
 
@@ -23,6 +23,7 @@ Requires
  * `>=Python3.5`
  * [Discord.py](https://github.com/Rapptz/discord.py) >= 1
  * [pixivpy](https://github.com/upbit/pixivpy)
+ * [twitter](https://github.com/bear/python-twitter) if twitter feature enabled
  * re
  * requests
  * io
