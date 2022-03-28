@@ -11,8 +11,8 @@ Currently supports:
  * Deviantart
  * Weasly
  * e621
- * ~~Most multi-image twitter posts~~ Now supported natively, but feature can be enabled
- * Pixiv
+ * Sensitive twitter posts
+ * ~~Pixiv~~ [Broken](https://github.com/upbit/pixivpy/issues/158) until further notice, code fix looks annoying to implement
  * Hentai-foundry
 
 Enclosing messages in angle brackets disables image preview. Links hiden by spoilers are automatically disabled.
@@ -23,7 +23,7 @@ Requires
  * `>=Python3.5`
  * [Discord.py](https://github.com/Rapptz/discord.py) >= 1
  * [pixivpy](https://github.com/upbit/pixivpy)
- * [twitter](https://github.com/bear/python-twitter) if twitter feature enabled
+ * [twitter](https://github.com/bear/python-twitter)
  * re
  * requests
  * io

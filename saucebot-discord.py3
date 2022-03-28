@@ -5,8 +5,8 @@
 __title__ = 'saucebot-discord'
 __author__ = 'Goopypanther'
 __license__ = 'GPL'
-__copyright__ = 'Copyright 2021 Goopypanther'
-__version__ = '1.0'
+__copyright__ = 'Copyright 2022 Goopypanther'
+__version__ = '1.1'
 
 import discord
 import re
@@ -15,23 +15,17 @@ import json
 import os
 import pixivpy3
 import io
-
-# Set to True to enable twitter media embed (disabled since native discord support available on desktop)
-twitter_support = False
-
-if twitter_support:
-    import twitter
+import twitter
 
 discord_token = os.environ["DISCORD_API_KEY"]
 weasyl_headers = {'X-Weasyl-API-Key': os.environ["WEASYL_API_KEY"]}
 pixiv_login = os.environ['PIXIV_LOGIN']
 pixiv_password = os.environ['PIXIV_PASSWORD']
 
-if twitter_support:
-    twitter_consumer_key = os.environ["TWITTER_CONSUMER_KEY"]
-    twitter_consumer_secret = os.environ["TWITTER_CONSUMER_SECRET"]
-    twitter_access_token_key = os.environ["TWITTER_TOKEN_KEY"]
-    twitter_access_token_secret = os.environ["TWITTER_TOKEN_SECRET"]
+twitter_consumer_key = os.environ["TWITTER_CONSUMER_KEY"]
+twitter_consumer_secret = os.environ["TWITTER_CONSUMER_SECRET"]
+twitter_access_token_key = os.environ["TWITTER_TOKEN_KEY"]
+twitter_access_token_secret = os.environ["TWITTER_TOKEN_SECRET"]
 
 disable_command_pattern = re.compile('(<|\|\|)(?!@|#|:|a:).*(>|\|\|)')
 fa_pattern = re.compile('(furaffinity\.net/(?:view|full)/(\d+))')
@@ -63,13 +57,12 @@ help_message = "Hi! I\'m saucebot v%s, a discord bot that embeds images from art
 pixivapi = pixivpy3.AppPixivAPI()
 pixivapi.login(pixiv_login, pixiv_password)
 
-if twitter_support:
-    twitterapi = twitter.Api(consumer_key=twitter_consumer_key,
-                      consumer_secret=twitter_consumer_secret,
-                      access_token_key=twitter_access_token_key,
-                      access_token_secret=twitter_access_token_secret,
-                      tweet_mode='extended')
-                  
+twitterapi = twitter.Api(consumer_key=twitter_consumer_key,
+                  consumer_secret=twitter_consumer_secret,
+                  access_token_key=twitter_access_token_key,
+                  access_token_secret=twitter_access_token_secret,
+                  tweet_mode='extended')
+
 client = discord.Client()
 
 
@@ -304,39 +297,46 @@ async def on_message(message):
             await message.channel.send(embed=em)
 
 
-    if twitter_support:
-        twitter_links = twitter_pattern.findall(message.content)
-        tweet_media = ''
+    twitter_links = twitter_pattern.findall(message.content)
+    tweet_media = ''
 
-        # Process each twitter link
-        for (tweet) in twitter_links:
-            # Request tweet
-            tweet_status = twitterapi.GetStatus(tweet)
+    # Process each twitter link
+    for (tweet) in twitter_links:
+        # Request tweet
+        tweet_status = twitterapi.GetStatus(tweet)
 
-            # Check for success from API
-            if not tweet_status:
-                continue
+        # Check for success from API
+        if not tweet_status:
+            continue
 
-            # Check if tweet has media
-            if not hasattr(tweet_status, 'media'):
-                continue
+        # Check if tweet has media
+        if not hasattr(tweet_status, 'media'):
+            continue
 
-            # Get media links in tweet
-            for (media_num, media_item) in enumerate(tweet_status.media):
-                # Check if media is an image and not first image (disp. by embed)
-                if (media_item.type == 'photo') and (media_num > 0):
-                    tweet_media += media_item.media_url_https + ' \n '
+        # Check if media is marked sensitive (thus no native embed)
+        # Comment this check out if you want all media from all tweeets posted
+        if not tweet_status.possibly_sensitive:
+            continue
 
-                # Disabling video feature since it can be played in the embed
-                # Can there be multiple videos per tweet?
-                #elif (media_item.type == 'video'):
-                #    tweet_media += media_item.video_info['variants'][0]['url']
+        # Include tweet fulltext before media
+        tweet_media = tweet_status.full_text.rsplit(' ', 1)[0] + ' \n '
 
-        # Check if any non-displayed media was found in any tweets in msg
-        if len(tweet_media) > 0:
-            print(message.author.name + '#' + message.author.discriminator + '@' + message.guild.name + ':' + message.channel.name + ': ' + tweet_media)
+        # Get media links in tweet
+        for (media_num, media_item) in enumerate(tweet_status.media):
+            # Check if media is an image and not first image (disp. by embed)
+            if (media_item.type == 'photo') and (media_num > 0):
+                tweet_media += media_item.media_url_https + ' \n '
 
-            await message.channel.send(tweet_media)
+            # Disabling video feature since it can be played in the embed
+            # Can there be multiple videos per tweet?
+            #elif (media_item.type == 'video'):
+            #    tweet_media += media_item.video_info['variants'][0]['url']
+
+    # Check if any non-displayed media was found in any tweets in msg
+    if len(tweet_media) > 0:
+        print(message.author.name + '#' + message.author.discriminator + '@' + message.guild.name + ':' + message.channel.name + ': ' + tweet_media)
+
+        await message.channel.send(tweet_media)
 
 
 @client.event
