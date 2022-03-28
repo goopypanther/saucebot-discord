@@ -13,14 +13,14 @@ import re
 import requests
 import json
 import os
-import pixivpy3
+#import pixivpy3
 import io
 import twitter
 
 discord_token = os.environ["DISCORD_API_KEY"]
 weasyl_headers = {'X-Weasyl-API-Key': os.environ["WEASYL_API_KEY"]}
-pixiv_login = os.environ['PIXIV_LOGIN']
-pixiv_password = os.environ['PIXIV_PASSWORD']
+#pixiv_login = os.environ['PIXIV_LOGIN']
+#pixiv_password = os.environ['PIXIV_PASSWORD']
 
 twitter_consumer_key = os.environ["TWITTER_CONSUMER_KEY"]
 twitter_consumer_secret = os.environ["TWITTER_CONSUMER_SECRET"]
@@ -54,8 +54,8 @@ help_message = "Hi! I\'m saucebot v%s, a discord bot that embeds images from art
 "Or you can visit us on github to submit an issue or fork our code: <https://github.com/JeremyRuhland/saucebot-discord/>" % __version__
 
 
-pixivapi = pixivpy3.AppPixivAPI()
-pixivapi.login(pixiv_login, pixiv_password)
+#pixivapi = pixivpy3.AppPixivAPI()
+#pixivapi.login(pixiv_login, pixiv_password)
 
 twitterapi = twitter.Api(consumer_key=twitter_consumer_key,
                   consumer_secret=twitter_consumer_secret,
@@ -228,7 +228,8 @@ async def on_message(message):
         await message.channel.send(embed=em)
 
 
-    pixiv_links = pixiv_pattern.findall(message.content)
+    #pixiv_links = pixiv_pattern.findall(message.content)
+    pixiv_links = False
 
     # Refresh oauth before using API
     if (pixiv_links) :
