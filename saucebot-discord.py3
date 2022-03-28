@@ -318,7 +318,7 @@ async def on_message(message):
         if not tweet_status.possibly_sensitive:
             continue
 
-        # Include tweet fulltext before media
+        # Include tweet fulltext before media, cut off included URL because it generates broken embed
         tweet_media = tweet_status.full_text.rsplit(' ', 1)[0] + ' \n '
 
         # Get media links in tweet
