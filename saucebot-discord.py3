@@ -325,7 +325,7 @@ async def on_message(message):
         # Get media links in tweet
         for (media_num, media_item) in enumerate(tweet_status.media):
             # Check if media is an image and not first image (disp. by embed)
-            if (media_item.type == 'photo') and (media_num > 0):
+            if (media_item.type == 'photo'): # and (media_num > 0):
                 tweet_media += media_item.media_url_https + ' \n '
 
             # Disabling video feature since it can be played in the embed
