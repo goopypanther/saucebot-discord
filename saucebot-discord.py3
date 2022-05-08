@@ -39,7 +39,6 @@ hf_pattern = re.compile('(hentai-foundry.com\/pictures\/user\/(\S*)\/(\d*)\/(\S*
 twitter_pattern = re.compile('twitter.com/\w+/status/(\d+)')
 
 faexport_url = "https://faexport.spangle.org.uk/submission/{}.json"
-fapi_url = "https://bawk.space/fapi/submission/{}"
 wsapi_url = "https://www.weasyl.com/api/submissions/{}/view"
 wscharapi_url = "https://www.weasyl.com/api/characters/{}/view"
 daapi_url = "https://backend.deviantart.com/oembed?url={}"
@@ -89,10 +88,6 @@ async def on_message(message):
         # Request submission info
         fa_get = requests.get(faexport_url.format(fa_id))
 
-        # Backup request
-        if (fa_get.status_code is not 200):
-            fa_get = requests.get(fapi_url.format(fa_id))
-
         # Check for success from API
         if not fa_get:
             continue
@@ -103,10 +98,7 @@ async def on_message(message):
         if fapi["rating"].lower() == "general":
             continue
 
-        try:
-            fapi_img = fapi["download"]
-        except:
-            fapi_img = fapi["image_url"]
+        fapi_img = fapi["download"]
 
         print(message.author.name + '#' + message.author.discriminator + '@' + message.guild.name + ':' + message.channel.name + ': ' + fapi_img)
 
@@ -116,10 +108,7 @@ async def on_message(message):
         # it's not of critical importance as the original url will be near
         # em.url = fa_link
 
-        try:
-            fapi_author = fapi["author"]
-        except:
-            fapi_author = fapi["profile_name"]
+        fapi_author = fapi["profile_name"]
 
         em.set_image(url=fapi_img)
         em.set_author(
