@@ -39,6 +39,7 @@ hf_pattern = re.compile('(hentai-foundry.com\/pictures\/user\/(\S*)\/(\d*)\/(\S*
 twitter_pattern = re.compile('twitter.com/\w+/status/(\d+)')
 
 faexport_url = "https://faexport.spangle.org.uk/submission/{}.json"
+faexport_user_url = "https://faexport.spangle.org.uk/user/{}.json"
 wsapi_url = "https://www.weasyl.com/api/submissions/{}/view"
 wscharapi_url = "https://www.weasyl.com/api/characters/{}/view"
 daapi_url = "https://backend.deviantart.com/oembed?url={}"
@@ -94,8 +95,11 @@ async def on_message(message):
 
         fapi = json.loads(fa_get.text)
 
+        fa_user_get = requests.get(faexport_user_url.format(fapi["profile_name"]))
+        fa_user = json.loads(fa_user_get.text)
+
         # FA now embeds general submissions, skip in that case
-        if fapi["rating"].lower() == "general":
+        if fapi["rating"].lower() == "general" and fa_user["guest_access"] == "true":
             continue
 
         fapi_img = fapi["download"]
