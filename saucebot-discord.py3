@@ -95,12 +95,15 @@ async def on_message(message):
 
         fapi = json.loads(fa_get.text)
 
-        fa_user_get = requests.get(faexport_user_url.format(fapi["profile_name"]))
-        fa_user = json.loads(fa_user_get.text)
+        # FA now embeds general submissions, mostly
+        if fapi["rating"].lower() == "general":
+        
+            # Check if user disallows guest access, we will have to embed ourselves
+            fa_user_get = requests.get(faexport_user_url.format(fapi["profile_name"]))
+            fa_user = json.loads(fa_user_get.text)
 
-        # FA now embeds general submissions, skip in that case
-        if fapi["rating"].lower() == "general" and fa_user["guest_access"] == "true":
-            continue
+            if fa_user["guest_access"] == "true":
+                continue
 
         fapi_img = fapi["download"]
 
