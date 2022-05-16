@@ -102,7 +102,7 @@ async def on_message(message):
             fa_user_get = requests.get(faexport_user_url.format(fapi["profile_name"]))
             fa_user = json.loads(fa_user_get.text)
 
-            if fa_user["guest_access"] == "true":
+            if fa_user["guest_access"]:
                 continue
 
         fapi_img = fapi["download"]
