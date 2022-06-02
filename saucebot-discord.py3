@@ -36,7 +36,7 @@ e621_pattern = re.compile('e621\.net\/post/show\/(\d+)')
 pixiv_pattern = re.compile('pixiv.net\/.*artworks\/(\d*)')
 pixiv_direct_img_pattern = re.compile('i\.pximg\.net\S*\w')
 hf_pattern = re.compile('(hentai-foundry.com\/pictures\/user\/(\S*)\/(\d*)\/(\S*))')
-twitter_pattern = re.compile('twitter.com/\w+/status/(\d+)')
+twitter_pattern = re.compile('(?<!vx)twitter.com/\w+/status/(\d+)')
 
 faexport_url = "https://faexport.spangle.org.uk/submission/{}.json"
 faexport_user_url = "https://faexport.spangle.org.uk/user/{}.json"
