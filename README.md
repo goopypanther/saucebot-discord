@@ -11,7 +11,7 @@ Currently supports:
  * Deviantart
  * Weasly
  * e621
- * Sensitive twitter posts
+ * ~~Sensitive twitter posts~~ Twitter fixed this
  * ~~Pixiv~~ [Broken](https://github.com/upbit/pixivpy/issues/158) until further notice, code fix looks annoying to implement
  * Hentai-foundry
 
@@ -23,7 +23,7 @@ Requires
  * `>=Python3.5`
  * [Discord.py](https://github.com/Rapptz/discord.py) >= 1
  * [pixivpy](https://github.com/upbit/pixivpy)
- * [twitter](https://github.com/bear/python-twitter)
+ * ~~[twitter](https://github.com/bear/python-twitter)~~
  * re
  * requests
  * io
